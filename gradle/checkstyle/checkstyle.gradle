@@ -16,7 +16,6 @@
 
 apply plugin: 'checkstyle'
 
-// def checkstyleConfigDir = new File(buildscript.sourceFile.parentFile, 'checkstyle')
 def checkstyleConfigDir = file("gradle/checkstyle")
 
 checkstyle {

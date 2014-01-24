@@ -1,0 +1,75 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'groovy'
+
+repositories {
+  maven { url "http://oss.jfrog.org/repo" }
+  mavenCentral()
+}
+
+dependencies {
+  compile 'io.ratpack:ratpack-guice:0.9.0'
+  compile 'com.dropbox.core:dropbox-core-sdk:1.7.6'
+
+  testCompile 'io.ratpack:ratpack-groovy-test:0.9.0'
+  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
+group = 'ratpack.modules'
+archivesBaseName = 'ratpack-dropbox-module'
+version = '0.1.0'
+
+// Pass private info to tests as system properties
+test {
+  systemProperty "apiKey", dropboxApiKey
+  systemProperty "apiSecret", dropboxApiSecret
+  systemProperty "accessToken", dropboxAccessToken
+}
+
+ext {
+  bintrayBaseUrl = 'https://api.bintray.com/maven'
+  bintrayUsername = 'stefanogualdi'
+  bintrayRepository = 'ratpack-modules'
+  bintrayPackage = 'ratpack-dropbox-module'
+
+  bintrayProjectName = 'Ratpack Dropbox module'
+  bintrayProjectDescription = 'Ratpack Dropbox module - access dropbox from ratpack apps'
+  bintrayInceptionYear = '2014'
+}
+
+apply from: "gradle/bintray/bintray.gradle"
+
+apply from: "gradle/idea/idea.gradle"
+
+apply from: "gradle/checkstyle/checkstyle.gradle"
+
+// Task to obtain the access token
+task auth(type: JavaExec) {
+  standardInput = System.in
+  environment API_KEY: dropboxApiKey
+  environment API_SECRET: dropboxApiSecret
+  main = "tools.Auth"
+  classpath = sourceSets.main.runtimeClasspath
+}
+
+
+wrapper {
+  gradleVersion '1.10'
+}

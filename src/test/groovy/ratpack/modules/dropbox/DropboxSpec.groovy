@@ -25,8 +25,11 @@ class DropboxSpec extends BaseModuleTestingSpec {
 
   def "can connect to dropbox"() {
     given:
+    launchConfig { other(['dropbox.accessToken': accessToken]) }
+
+    and:
     modules {
-      register new DropboxModule(accessToken: accessToken)
+      register new DropboxModule()
     }
 
     handlers { DropboxService service ->

@@ -69,7 +69,6 @@ task auth(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
 }
 
-
 wrapper {
   gradleVersion '1.10'
 }

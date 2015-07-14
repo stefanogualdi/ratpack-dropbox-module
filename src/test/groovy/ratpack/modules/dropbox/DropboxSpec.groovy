@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,67 @@
 
 package ratpack.modules.dropbox
 
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.guice.Guice
+import ratpack.test.embed.BaseDirBuilder
+import ratpack.test.embed.EmbeddedApp
+import ratpack.test.http.TestHttpClient
+import spock.lang.AutoCleanup
+import spock.lang.Specification
+
 /**
  * @author Stefano Gualdi <stefano.gualdi@gmail.com>
  */
-class DropboxSpec extends BaseModuleTestingSpec {
+class DropboxSpec extends Specification {
 
   final String accessToken = System.getProperty("accessToken")
 
-  def "can connect to dropbox"() {
+  @AutoCleanup
+  @Delegate
+  BaseDirBuilder baseDir = BaseDirBuilder.tmpDir()
+
+  @AutoCleanup
+  EmbeddedApp app
+
+  @Delegate
+  TestHttpClient client
+
+  def "simple"() {
     given:
-    launchConfig { other(['dropbox.accessToken': accessToken]) }
-
-    and:
-    modules {
-      register new DropboxModule()
-    }
-
-    handlers { DropboxService service ->
-      get {
-        render service.accessToken()
+    app = GroovyEmbeddedApp.of {
+      handlers {
+        get {
+          render "OK"
+        }
       }
     }
 
+    and:
+    client = testHttpClient(app)
+
     expect:
-    getText() == accessToken
+    getText() == "OK"
+  }
+
+  def "can connect to dropbox"() {
+    given:
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken)}
+      }
+
+      handlers {
+        get { DropboxService service ->
+          render service.accessToken()
+        }
+      }
+    }
+
+    and:
+    client = testHttpClient(app)
+
+    expect:
+    get().body.text == accessToken
   }
 
   def "can upload a file"() {
@@ -47,16 +84,21 @@ class DropboxSpec extends BaseModuleTestingSpec {
     def fooFile = file "foo.txt", "dummy text"
 
     and:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken)}
+      }
 
-    handlers { DropboxService service ->
-      get {
-        service.upload(fooFile.toFile(), '/test/file.txt')
-        render "uploaded"
+      handlers {
+        get { DropboxService service ->
+          service.upload(fooFile.toFile(), '/test/file.txt')
+          render "uploaded"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "uploaded"
@@ -64,15 +106,20 @@ class DropboxSpec extends BaseModuleTestingSpec {
 
   def "can list folder content"() {
     given:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
+      }
 
-    handlers { DropboxService service ->
-      get {
-        render "${service.list('/test').children.size()}"
+      handlers {
+        get { DropboxService service ->
+          render "${service.list('/test').children.size()}"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "1"
@@ -83,16 +130,21 @@ class DropboxSpec extends BaseModuleTestingSpec {
     def metadata
 
     and:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
+      }
 
-    handlers { DropboxService service ->
-      get {
-        metadata = service.metadata('/test/file.txt').asFile()
-        render "ok"
+      handlers {
+        get { DropboxService service ->
+          metadata = service.metadata('/test/file.txt').asFile()
+          render "ok"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "ok"
@@ -109,16 +161,21 @@ class DropboxSpec extends BaseModuleTestingSpec {
     def fooFile = file "downloaded.txt"
 
     and:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
+      }
 
-    handlers { DropboxService service ->
-      get {
-        service.download('/test/file.txt', fooFile.toString())
-        render "ok"
+      handlers {
+        get { DropboxService service ->
+          service.download('/test/file.txt', fooFile.toString())
+          render "ok"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "ok"
@@ -134,16 +191,21 @@ class DropboxSpec extends BaseModuleTestingSpec {
     def metadata
 
     and:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
+      }
 
-    handlers { DropboxService service ->
-      get {
-        metadata = service.metadata('/test').asFolder()
-        render "ok"
+      handlers {
+        get {  DropboxService service ->
+          metadata = service.metadata('/test').asFolder()
+          render "ok"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "ok"
@@ -154,22 +216,28 @@ class DropboxSpec extends BaseModuleTestingSpec {
     metadata.isFolder()
   }
 
+
   def "can delete a file"() {
     given:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
-
-    handlers { DropboxService service ->
-      get {
-        service.delete('/test/file.txt')
-        render "deleted"
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
       }
 
-      get("list") {
-        render "${service.list('/test').children.size()}"
+      handlers {
+        get { DropboxService service ->
+          service.delete('/test/file.txt')
+          render "deleted"
+        }
+
+        get("list") { DropboxService service ->
+          render "${service.list('/test').children.size()}"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "deleted"
@@ -178,20 +246,25 @@ class DropboxSpec extends BaseModuleTestingSpec {
 
   def "can create a folder"() {
     given:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
-
-    handlers { DropboxService service ->
-      get {
-        service.createFolder('/folder')
-        render "created"
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
       }
 
-      get("metadata") {
-        render service.metadata('/folder').name
+      handlers {
+        get { DropboxService service ->
+          service.createFolder('/folder')
+          render "created"
+        }
+
+        get("metadata") { DropboxService service ->
+          render service.metadata('/folder').name
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "created"
@@ -200,20 +273,25 @@ class DropboxSpec extends BaseModuleTestingSpec {
 
   def "can delete a folder"() {
     given:
-    modules {
-      register new DropboxModule(accessToken: accessToken)
-    }
-
-    handlers { DropboxService service ->
-      get {
-        service.delete('/folder')
-        render "deleted"
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
       }
 
-      get("metadata") {
-        render "${service.metadata('/folder')}"
+      handlers {
+        get { DropboxService service ->
+          service.delete('/folder')
+          render "deleted"
+        }
+
+        get("metadata") { DropboxService service ->
+          render "${service.metadata('/folder')}"
+        }
       }
     }
+
+    and:
+    client = testHttpClient(app)
 
     expect:
     getText() == "deleted"

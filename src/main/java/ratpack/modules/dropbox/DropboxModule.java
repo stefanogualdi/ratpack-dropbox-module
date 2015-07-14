@@ -18,9 +18,8 @@ package ratpack.modules.dropbox;
 
 import com.dropbox.core.DbxClient;
 import com.dropbox.core.DbxRequestConfig;
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import ratpack.launch.LaunchConfig;
+import ratpack.guice.ConfigurableModule;
 import ratpack.modules.dropbox.internal.DefaultDropboxService;
 
 import java.util.Locale;
@@ -28,7 +27,20 @@ import java.util.Locale;
 /**
  * @author Stefano Gualdi <stefano.gualdi@gmail.com>
  */
-public class DropboxModule extends AbstractModule {
+public class DropboxModule extends ConfigurableModule<DropboxModule.Config> {
+
+  public static class Config {
+    private String accessToken;
+
+    public String getAccessToken() {
+      return accessToken;
+    }
+
+    public Config accessToken(String accessToken) {
+      this.accessToken = accessToken;
+      return this;
+    }
+  }
 
   private String accessToken;
 
@@ -47,12 +59,12 @@ public class DropboxModule extends AbstractModule {
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  DbxClient provideDbxClient(LaunchConfig launchConfig) {
-    DbxRequestConfig config = new DbxRequestConfig("RatpackDropboxModule/1.0", Locale.getDefault().toString());
+  DbxClient provideDbxClient(Config config) {
+    DbxRequestConfig dbxConfig = new DbxRequestConfig("RatpackDropboxModule/1.0", Locale.getDefault().toString());
 
-    String token = accessToken == null ? launchConfig.getOther("dropbox.accessToken", "UNDEFINED") : accessToken;
+    String token = accessToken == null ? config.getAccessToken() : accessToken;
 
-    DbxClient client = new DbxClient(config, token);
+    DbxClient client = new DbxClient(dbxConfig, token);
     return client;
   }
 }

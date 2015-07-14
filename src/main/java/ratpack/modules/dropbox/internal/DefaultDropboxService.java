@@ -25,7 +25,7 @@ import ratpack.modules.dropbox.DropboxService;
 
 import java.io.*;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * @author Stefano Gualdi <stefano.gualdi@gmail.com>
@@ -85,9 +85,7 @@ public class DefaultDropboxService implements DropboxService {
 
     try {
       uploadedFile = dbxClient.uploadFile(uploadFilename, DbxWriteMode.add(), fileToUpload.length(), inputStream);
-    } catch (DbxException e) {
-      throw uncheck(e);
-    } catch (IOException e) {
+    } catch (DbxException | IOException e) {
       throw uncheck(e);
     } finally {
       try {
@@ -112,9 +110,7 @@ public class DefaultDropboxService implements DropboxService {
 
     try {
       downloadedFile = dbxClient.getFile(filename, null, outputStream);
-    } catch (IOException e) {
-      throw uncheck(e);
-    } catch (DbxException e) {
+    } catch (IOException | DbxException e) {
       throw uncheck(e);
     } finally {
       try {

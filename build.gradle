@@ -22,25 +22,27 @@ repositories {
 }
 
 dependencies {
-  compile 'io.ratpack:ratpack-guice:0.9.0'
-  compile 'com.dropbox.core:dropbox-core-sdk:1.7.6'
+  compile 'io.ratpack:ratpack-guice:0.9.18'
+  compile 'com.dropbox.core:dropbox-core-sdk:1.7.7'
 
-  testCompile 'io.ratpack:ratpack-groovy-test:0.9.0'
+  testCompile 'io.ratpack:ratpack-groovy-test:0.9.18'
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
 
 group = 'ratpack.modules'
 archivesBaseName = 'ratpack-dropbox-module'
-version = '0.1.0'
+version = '0.2.0'
 
 // Pass private info to tests as system properties
 test {
   systemProperty "apiKey", dropboxApiKey
   systemProperty "apiSecret", dropboxApiSecret
   systemProperty "accessToken", dropboxAccessToken
+
+  testLogging.showStandardStreams = true
 }
 
 ext {
@@ -51,7 +53,7 @@ ext {
 
   bintrayProjectName = 'Ratpack Dropbox module'
   bintrayProjectDescription = 'Ratpack Dropbox module - access dropbox from ratpack apps'
-  bintrayInceptionYear = '2014'
+  bintrayInceptionYear = '2015'
 }
 
 apply from: "gradle/bintray/bintray.gradle"
@@ -70,5 +72,5 @@ task auth(type: JavaExec) {
 }
 
 wrapper {
-  gradleVersion '1.10'
+  gradleVersion '2.3'
 }

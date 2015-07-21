@@ -34,7 +34,7 @@ targetCompatibility = "1.8"
 
 group = 'ratpack.modules'
 archivesBaseName = 'ratpack-dropbox-module'
-version = '0.2.0'
+version = '0.3.0-SNAPSHOT'
 
 // Pass private info to tests as system properties
 test {

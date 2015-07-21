@@ -74,3 +74,11 @@ task auth(type: JavaExec) {
 wrapper {
   gradleVersion '2.3'
 }
+
+apply plugin: 'maven'
+configure(install.repositories.mavenInstaller) {
+  pom.project {
+    inceptionYear '2015'
+    packaging 'jar'
+  }
+}

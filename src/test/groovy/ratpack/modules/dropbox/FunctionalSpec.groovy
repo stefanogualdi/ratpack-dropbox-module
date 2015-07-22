@@ -89,13 +89,18 @@ class FunctionalSpec extends Specification {
   }
 
   def "can delete a file"() {
-    given:
+    when:
     def response = httpClient.get("delete")
 
-    expect:
+    then:
     response.statusCode == 200
     response.body.text == "deleted"
 
-    // getText("list") == "0"
+    when:
+    response = httpClient.get("list")
+
+    then:
+    response.statusCode == 200
+    response.body.text == "0"
   }
 }

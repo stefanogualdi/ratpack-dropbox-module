@@ -19,6 +19,7 @@ package ratpack.modules.dropbox;
 import com.dropbox.core.DbxClient;
 import com.dropbox.core.DbxRequestConfig;
 import com.google.inject.Provides;
+import com.google.inject.Scopes;
 import ratpack.guice.ConfigurableModule;
 import ratpack.modules.dropbox.internal.DefaultDropboxService;
 
@@ -54,7 +55,7 @@ public class DropboxModule extends ConfigurableModule<DropboxModule.Config> {
 
   @Override
   protected void configure() {
-    bind(DropboxService.class).to(DefaultDropboxService.class);
+    bind(DropboxService.class).to(DefaultDropboxService.class).in(Scopes.SINGLETON);
   }
 
   @SuppressWarnings("UnusedDeclaration")

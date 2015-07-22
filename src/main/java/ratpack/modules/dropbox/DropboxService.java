@@ -42,5 +42,7 @@ public interface DropboxService {
 
   DbxEntry.File download(String filename, OutputStream outputStream);
 
+  String downloadAsString(String filename);
+
   void delete(String filename);
 }

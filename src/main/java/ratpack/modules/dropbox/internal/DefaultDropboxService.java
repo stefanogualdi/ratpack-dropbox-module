@@ -112,6 +112,7 @@ public class DefaultDropboxService implements DropboxService {
     try {
       outputStream = new FileOutputStream(downloadedFilename);
       downloadedFile = download(filename, outputStream);
+      outputStream.flush();
       outputStream.close();
     } catch (IOException e) {
       throw uncheck(e);
@@ -130,6 +131,22 @@ public class DefaultDropboxService implements DropboxService {
     }
 
     return downloadedFile;
+  }
+
+  public String downloadAsString(String filename) {
+    String theData = null;
+
+    try {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      download(filename, os);
+      theData = new String(os.toByteArray(), "UTF-8");
+      os.flush();
+      os.close();
+    } catch (IOException e) {
+      throw uncheck(e);
+    }
+
+    return theData;
   }
 
   public void delete(String filename) {

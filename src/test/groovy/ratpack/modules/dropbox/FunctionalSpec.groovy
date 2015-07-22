@@ -39,6 +39,10 @@ class FunctionalSpec extends Specification {
         service.upload(fooFile.toFile(), '/test2/file.txt')
         render "uploaded"
       }
+      get("download") { DropboxService service ->
+        def data = service.downloadAsString('/test2/file.txt')
+        render data
+      }
       get("delete") { DropboxService service ->
         service.delete('/test2/file.txt')
         render "deleted"
@@ -86,6 +90,15 @@ class FunctionalSpec extends Specification {
     expect:
     response.statusCode == 200
     response.body.text == "uploaded"
+  }
+
+  void "can download as string"() {
+    given:
+    def response = httpClient.get("download")
+
+    expect:
+    response.statusCode == 200
+    response.body.text == "dummy text"
   }
 
   def "can delete a file"() {

@@ -16,8 +16,10 @@
 
 package ratpack.modules.dropbox;
 
+import com.dropbox.core.DbxAccountInfo;
 import com.dropbox.core.DbxEntry;
 import java.io.File;
+import java.io.OutputStream;
 
 /**
  * @author Stefano Gualdi <stefano.gualdi@gmail.com>
@@ -25,6 +27,8 @@ import java.io.File;
 public interface DropboxService {
 
   String accessToken();
+
+  DbxAccountInfo accountInfo();
 
   DbxEntry metadata(String path);
 
@@ -35,6 +39,8 @@ public interface DropboxService {
   DbxEntry.File upload(File fileToUpload, String uploadFilename);
 
   DbxEntry.File download(String filename, String downloadedFilename);
+
+  DbxEntry.File download(String filename, OutputStream outputStream);
 
   void delete(String filename);
 }

@@ -38,6 +38,7 @@ version = '0.3.0-SNAPSHOT'
 
 // Pass private info to tests as system properties
 test {
+  systemProperty "userId", dropboxUserId
   systemProperty "apiKey", dropboxApiKey
   systemProperty "apiSecret", dropboxApiSecret
   systemProperty "accessToken", dropboxAccessToken

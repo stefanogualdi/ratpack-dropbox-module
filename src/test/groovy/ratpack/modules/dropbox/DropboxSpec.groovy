@@ -62,7 +62,7 @@ class DropboxSpec extends Specification {
     given:
     app = GroovyEmbeddedApp.of {
       registry Guice.registry {
-        it.module DropboxModule, { c -> c.accessToken(accessToken)}
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
       }
 
       handlers {
@@ -86,7 +86,7 @@ class DropboxSpec extends Specification {
     and:
     app = GroovyEmbeddedApp.of {
       registry Guice.registry {
-        it.module DropboxModule, { c -> c.accessToken(accessToken)}
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
       }
 
       handlers {
@@ -186,6 +186,36 @@ class DropboxSpec extends Specification {
     file.text == "dummy text"
   }
 
+  def "can download a file to a string"() {
+    given:
+    ByteArrayOutputStream os = new ByteArrayOutputStream()
+    String theData = null
+
+    and:
+    app = GroovyEmbeddedApp.of {
+      registry Guice.registry {
+        it.module DropboxModule, { c -> c.accessToken(accessToken) }
+      }
+
+      handlers {
+        get { DropboxService service ->
+          service.download('/test/file.txt', os)
+          theData = new String(os.toByteArray(), "UTF-8")
+          render "ok"
+        }
+      }
+    }
+
+    and:
+    client = testHttpClient(app)
+
+    expect:
+    getText() == "ok"
+
+    and:
+    theData == "dummy text"
+  }
+
   def "can get folder metadata"() {
     given:
     def metadata
@@ -197,7 +227,7 @@ class DropboxSpec extends Specification {
       }
 
       handlers {
-        get {  DropboxService service ->
+        get { DropboxService service ->
           metadata = service.metadata('/test').asFolder()
           render "ok"
         }

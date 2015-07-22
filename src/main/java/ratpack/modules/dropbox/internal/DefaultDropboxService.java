@@ -16,10 +16,7 @@
 
 package ratpack.modules.dropbox.internal;
 
-import com.dropbox.core.DbxClient;
-import com.dropbox.core.DbxEntry;
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxWriteMode;
+import com.dropbox.core.*;
 import com.google.inject.Inject;
 import ratpack.modules.dropbox.DropboxService;
 
@@ -41,6 +38,16 @@ public class DefaultDropboxService implements DropboxService {
 
   public String accessToken() {
     return dbxClient.getAccessToken();
+  }
+
+  public DbxAccountInfo accountInfo() {
+    DbxAccountInfo info = null;
+    try {
+      info = dbxClient.getAccountInfo();
+    } catch (DbxException e) {
+      throw uncheck(e);
+    }
+    return info;
   }
 
   public DbxEntry metadata(String path) {
@@ -104,20 +111,22 @@ public class DefaultDropboxService implements DropboxService {
     FileOutputStream outputStream = null;
     try {
       outputStream = new FileOutputStream(downloadedFilename);
-    } catch (FileNotFoundException e) {
+      downloadedFile = download(filename, outputStream);
+      outputStream.close();
+    } catch (IOException e) {
       throw uncheck(e);
     }
+
+    return downloadedFile;
+  }
+
+  public DbxEntry.File download(String filename, OutputStream outputStream) {
+    DbxEntry.File downloadedFile = null;
 
     try {
       downloadedFile = dbxClient.getFile(filename, null, outputStream);
     } catch (IOException | DbxException e) {
       throw uncheck(e);
-    } finally {
-      try {
-        outputStream.close();
-      } catch (IOException e) {
-        throw uncheck(e);
-      }
     }
 
     return downloadedFile;

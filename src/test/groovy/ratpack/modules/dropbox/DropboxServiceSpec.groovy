@@ -4,6 +4,7 @@ import com.dropbox.core.DbxClient
 import com.dropbox.core.DbxEntry
 import com.dropbox.core.DbxRequestConfig
 import ratpack.modules.dropbox.internal.DefaultDropboxService
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -28,6 +29,7 @@ class DropboxServiceSpec extends Specification {
     token == accessToken
   }
 
+  @Ignore
   def "list a folder"() {
     when:
     def files = service.list('/test1').children
@@ -36,6 +38,7 @@ class DropboxServiceSpec extends Specification {
     files.size() > 0
   }
 
+  @Ignore
   def "check for file name"() {
     when:
     def files = service.list('/test1').children

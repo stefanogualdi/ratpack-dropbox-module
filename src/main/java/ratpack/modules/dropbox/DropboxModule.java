@@ -16,14 +16,14 @@
 
 package ratpack.modules.dropbox;
 
-import com.dropbox.core.DbxClient;
 import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.http.OkHttp3Requestor;
+import com.dropbox.core.http.StandardHttpRequestor;
+import com.dropbox.core.v2.DbxClientV2;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import ratpack.guice.ConfigurableModule;
 import ratpack.modules.dropbox.internal.DefaultDropboxService;
-
-import java.util.Locale;
 
 /**
  * @author Stefano Gualdi <stefano.gualdi@gmail.com>
@@ -60,12 +60,23 @@ public class DropboxModule extends ConfigurableModule<DropboxModule.Config> {
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  DbxClient provideDbxClient(Config config) {
-    DbxRequestConfig dbxConfig = new DbxRequestConfig("RatpackDropboxModule/1.0", Locale.getDefault().toString());
+  DbxClientV2 provideDbxClient(Config config) {
+
+    // new DbxClientV2(requestConfig, auth.getAccessToken(), auth.getHost());
+    /*
+    DbxRequestConfig dbxConfig = DbxRequestConfig.newBuilder("RatpackDropboxModule/1.0")
+      .withHttpRequestor(new OkHttp3Requestor(OkHttp3Requestor.defaultOkHttpClient()))
+      .build();
+     */
+
+    StandardHttpRequestor requestor = new StandardHttpRequestor(StandardHttpRequestor.Config.DEFAULT_INSTANCE);
+    DbxRequestConfig dbxConfig = DbxRequestConfig.newBuilder("RatpackDropboxModule/1.0")
+      .withHttpRequestor(requestor)
+      .build();
 
     String token = accessToken == null ? config.getAccessToken() : accessToken;
+    DbxClientV2 client = new DbxClientV2(dbxConfig, token);
 
-    DbxClient client = new DbxClient(dbxConfig, token);
     return client;
   }
 }

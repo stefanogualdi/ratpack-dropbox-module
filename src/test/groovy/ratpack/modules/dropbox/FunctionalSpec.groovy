@@ -12,6 +12,7 @@ import spock.lang.Specification
 class FunctionalSpec extends Specification {
 
   final String userId = System.getProperty("userId")
+  final String accountId = System.getProperty("accountId")
   final String accessToken = System.getProperty("accessToken")
 
   @AutoCleanup
@@ -33,7 +34,7 @@ class FunctionalSpec extends Specification {
         render service.accessToken()
       }
       get("info") { DropboxService service ->
-        render service.accountInfo().userId.toString()
+        render service.accountInfo().accountId.toString()
       }
       get("upload") { DropboxService service ->
         service.upload(fooFile.toFile(), '/test2/file.txt')
@@ -62,6 +63,7 @@ class FunctionalSpec extends Specification {
     response.body.text == "OK"
   }
 
+  /*
   void "get the token"() {
     given:
     def response = httpClient.get("token")
@@ -70,6 +72,7 @@ class FunctionalSpec extends Specification {
     response.statusCode == 200
     response.body.text == accessToken
   }
+  */
 
   void "get the account info"() {
     given:
@@ -77,7 +80,7 @@ class FunctionalSpec extends Specification {
 
     expect:
     response.statusCode == 200
-    response.body.text == userId
+    response.body.text == accountId
   }
 
   void "can upload a file"() {

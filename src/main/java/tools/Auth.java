@@ -49,6 +49,6 @@ public class Auth {
     DbxAuthFinish authFinish = webAuth.finish(code);
 
     System.out.print("The access token is: ");
-    System.out.println(authFinish.accessToken);
+    // System.out.println(authFinish.accessToken);
   }
 }

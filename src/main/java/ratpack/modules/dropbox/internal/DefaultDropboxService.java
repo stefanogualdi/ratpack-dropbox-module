@@ -16,11 +16,16 @@
 
 package ratpack.modules.dropbox.internal;
 
-import com.dropbox.core.*;
+import com.dropbox.core.DbxException;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.*;
+import com.dropbox.core.v2.users.FullAccount;
 import com.google.inject.Inject;
 import ratpack.modules.dropbox.DropboxService;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -29,58 +34,85 @@ import static ratpack.util.Exceptions.uncheck;
  */
 public class DefaultDropboxService implements DropboxService {
 
-  private final DbxClient dbxClient;
+  private final DbxClientV2 dbxClient;
 
   @Inject
-  DefaultDropboxService(DbxClient dbxClient) {
+  DefaultDropboxService(DbxClientV2 dbxClient) {
     this.dbxClient = dbxClient;
   }
 
-  public String accessToken() {
-    return dbxClient.getAccessToken();
-  }
-
-  public DbxAccountInfo accountInfo() {
-    DbxAccountInfo info = null;
+  public FullAccount accountInfo() {
+    FullAccount info = null;
     try {
-      info = dbxClient.getAccountInfo();
+      info = dbxClient.users().getCurrentAccount();
     } catch (DbxException e) {
       throw uncheck(e);
     }
     return info;
   }
 
-  public DbxEntry metadata(String path) {
-    DbxEntry entry = null;
+  public Metadata metadata(String path) {
+    Metadata entry = null;
     try {
-      entry = dbxClient.getMetadata(path);
+      entry = dbxClient.files().getMetadata(path);
     } catch (DbxException e) {
       throw uncheck(e);
     }
     return entry;
   }
 
-  public DbxEntry.WithChildren list(String path) {
-    DbxEntry.WithChildren listing = null;
+  public List<Metadata> list(String path) {
+    List<Metadata> result = new ArrayList<>();
     try {
-      listing = dbxClient.getMetadataWithChildren(path);
+      ListFolderResult listing = dbxClient.files().listFolderBuilder(path).start();
+      for (Metadata child : listing.getEntries()) {
+        result.add(child);
+      }
     } catch (DbxException e) {
       throw uncheck(e);
     }
-    return listing;
+    return result;
   }
 
-  public DbxEntry.Folder createFolder(String path) {
-    DbxEntry.Folder folder = null;
+  public FolderMetadata createFolder(String path) {
+    FolderMetadata folder = null;
     try {
-      folder = dbxClient.createFolder(path);
+      CreateFolderResult f = dbxClient.files().createFolderV2(path);
+      folder = f.getMetadata();
     } catch (DbxException e) {
       throw uncheck(e);
     }
     return folder;
   }
 
-  public DbxEntry.File upload(File fileToUpload, String uploadFilename) {
+  public FileMetadata upload(File fileToUpload, String uploadFilename) {
+
+    FileInputStream inputStream = null;
+    try {
+      inputStream = new FileInputStream(fileToUpload);
+    } catch (FileNotFoundException e) {
+      throw uncheck(e);
+    }
+
+    // Path p = Paths.get(uploadFilename);
+
+    FileMetadata metadata = null;
+    try {
+      metadata = dbxClient.files().uploadBuilder(uploadFilename).uploadAndFinish(inputStream);
+    } catch (DbxException e) {
+      throw uncheck(e);
+    } catch (IOException e) {
+      throw uncheck(e);
+    } finally {
+      try {
+        inputStream.close();
+      } catch (IOException e) {
+        throw uncheck(e);
+      }
+    }
+
+    return metadata;
+    /*
     DbxEntry.File uploadedFile = null;
 
     FileInputStream inputStream = null;
@@ -103,10 +135,11 @@ public class DefaultDropboxService implements DropboxService {
     }
 
     return uploadedFile;
+    */
   }
 
-  public DbxEntry.File download(String filename, String downloadedFilename) {
-    DbxEntry.File downloadedFile = null;
+  public FileMetadata download(String filename, String downloadedFilename) {
+    FileMetadata downloadedFile = null;
 
     FileOutputStream outputStream = null;
     try {
@@ -116,16 +149,22 @@ public class DefaultDropboxService implements DropboxService {
       outputStream.close();
     } catch (IOException e) {
       throw uncheck(e);
+    } finally {
+      try {
+        outputStream.close();
+      } catch (IOException e) {
+        throw uncheck(e);
+      }
     }
 
     return downloadedFile;
   }
 
-  public DbxEntry.File download(String filename, OutputStream outputStream) {
-    DbxEntry.File downloadedFile = null;
+  public FileMetadata download(String filename, OutputStream outputStream) {
+    FileMetadata downloadedFile = null;
 
     try {
-      downloadedFile = dbxClient.getFile(filename, null, outputStream);
+      downloadedFile = dbxClient.files().downloadBuilder(filename).download(outputStream);
     } catch (IOException | DbxException e) {
       throw uncheck(e);
     }
@@ -151,7 +190,7 @@ public class DefaultDropboxService implements DropboxService {
 
   public void delete(String filename) {
     try {
-      dbxClient.delete(filename);
+      dbxClient.files().deleteV2(filename);
     } catch (DbxException e) {
       throw uncheck(e);
     }

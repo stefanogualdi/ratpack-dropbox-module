@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
   compile 'io.ratpack:ratpack-guice:0.9.18'
-  compile 'com.dropbox.core:dropbox-core-sdk:1.7.7'
+  compile 'com.dropbox.core:dropbox-core-sdk:3.0.7'
 
   testCompile 'io.ratpack:ratpack-groovy-test:0.9.18'
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
@@ -34,11 +34,12 @@ targetCompatibility = "1.8"
 
 group = 'ratpack.modules'
 archivesBaseName = 'ratpack-dropbox-module'
-version = '0.3.0'
+version = '0.4.0'
 
 // Pass private info to tests as system properties
 test {
   systemProperty "userId", dropboxUserId
+  systemProperty "accountId", dropboxAccountId
   systemProperty "apiKey", dropboxApiKey
   systemProperty "apiSecret", dropboxApiSecret
   systemProperty "accessToken", dropboxAccessToken

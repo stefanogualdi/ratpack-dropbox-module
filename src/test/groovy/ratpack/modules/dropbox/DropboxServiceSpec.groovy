@@ -1,8 +1,10 @@
 package ratpack.modules.dropbox
 
-import com.dropbox.core.DbxClient
-import com.dropbox.core.DbxEntry
 import com.dropbox.core.DbxRequestConfig
+import com.dropbox.core.http.StandardHttpRequestor
+import com.dropbox.core.v2.DbxClientV2
+import com.dropbox.core.v2.files.FileMetadata
+import com.dropbox.core.v2.users.FullAccount
 import ratpack.modules.dropbox.internal.DefaultDropboxService
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -16,17 +18,25 @@ class DropboxServiceSpec extends Specification {
   DropboxService service
 
   def setup() {
+    StandardHttpRequestor requestor = new StandardHttpRequestor(StandardHttpRequestor.Config.DEFAULT_INSTANCE);
+    DbxRequestConfig dbxConfig = DbxRequestConfig.newBuilder("RatpackDropboxModule/1.0")
+      .withHttpRequestor(requestor)
+      .build()
+    DbxClientV2 client = new DbxClientV2(dbxConfig, accessToken)
+
+    /*
     DbxRequestConfig dbxConfig = new DbxRequestConfig("RatpackDropboxModule/1.0", Locale.getDefault().toString());
     DbxClient dbxClient = new DbxClient(dbxConfig, accessToken)
-    service = new DefaultDropboxService(dbxClient)
+    */
+    service = new DefaultDropboxService(client)
   }
 
-  def "check token"() {
+  def "check account"() {
     when:
-    def token = service.accessToken()
+    def account = service.accountInfo()
 
     then:
-    token == accessToken
+    account.name.displayName == "Stefano Gualdi"
   }
 
   @Ignore
@@ -44,7 +54,7 @@ class DropboxServiceSpec extends Specification {
     def files = service.list('/test1').children
 
     then:
-    DbxEntry.File f = files[0]
+    FileMetadata f = files[0]
     f.name == 'opera.html'
   }
 }

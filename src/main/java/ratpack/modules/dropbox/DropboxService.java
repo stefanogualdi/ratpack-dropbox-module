@@ -16,31 +16,31 @@
 
 package ratpack.modules.dropbox;
 
-import com.dropbox.core.DbxAccountInfo;
-import com.dropbox.core.DbxEntry;
+import com.dropbox.core.v2.files.*;
+import com.dropbox.core.v2.users.FullAccount;
+
 import java.io.File;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * @author Stefano Gualdi <stefano.gualdi@gmail.com>
  */
 public interface DropboxService {
 
-  String accessToken();
+  FullAccount accountInfo();
 
-  DbxAccountInfo accountInfo();
+  Metadata metadata(String path);
 
-  DbxEntry metadata(String path);
+  List<Metadata> list(String path);
 
-  DbxEntry.WithChildren list(String path);
+  FolderMetadata createFolder(String path);
 
-  DbxEntry.Folder createFolder(String path);
+  FileMetadata upload(File fileToUpload, String uploadFilename);
 
-  DbxEntry.File upload(File fileToUpload, String uploadFilename);
+  FileMetadata download(String filename, String downloadedFilename);
 
-  DbxEntry.File download(String filename, String downloadedFilename);
-
-  DbxEntry.File download(String filename, OutputStream outputStream);
+  FileMetadata download(String filename, OutputStream outputStream);
 
   String downloadAsString(String filename);
 
